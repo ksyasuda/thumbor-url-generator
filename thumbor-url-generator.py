@@ -68,8 +68,8 @@ def generate_unsafe_url(
     if encode_url is None:
         logger.error("Encoded URL is None")
         raise Exception("Encoded URL is None")
-    if is_smart:
-        unsafe_url = (
+    unsafe_url = (
+        (
             thumbor_base_url
             + "/unsafe/"
             + img_width
@@ -78,19 +78,21 @@ def generate_unsafe_url(
             + "/smart/"
             + encoded_url
         )
-    else:
-        unsafe_url = (
+        if is_smart
+        else (
             thumbor_base_url
             + "/unsafe/"
             + img_width
             + "x"
             + img_height
-            + "/smart/"
+            + "/"
             + encoded_url
         )
+    )
     logger.info("Generated URL: %s", unsafe_url)
+    unsafe_url = unsafe_url.strip()
     if is_copy:
-        copy(unsafe_url.strip())
+        copy(unsafe_url)
     return unsafe_url
 
 
@@ -122,11 +124,12 @@ def generate_safe_url(
         image_url=encoded_url,
     )
 
-    safe_url: str = thumbor_base_url + encrypted_url
+    safe_url = thumbor_base_url + encrypted_url
+    safe_url = safe_url.strip()
     logger.info("Encrypted url: %s", encrypted_url)
     logger.info("Generated URL: %s", safe_url)
     if is_copy:
-        copy(safe_url.strip())
+        copy(safe_url)
     return safe_url
 
 
@@ -192,13 +195,10 @@ if __name__ == "__main__":
     logger.debug("COPY: %s", cpy)
     logger.debug("UNSAFE: %s", unsafe)
 
-    url = ""
-    if unsafe:
-        url = generate_unsafe_url(
-            THUMBOR_BASE_URL, args.image_url, width, height, smart, cpy
-        )
-    else:
-        url = generate_safe_url(
+    url = (
+        generate_unsafe_url(THUMBOR_BASE_URL, args.image_url, width, height, smart, cpy)
+        if unsafe
+        else generate_safe_url(
             THUMBOR_BASE_URL,
             THUMBOR_KEY,
             args.image_url,
@@ -207,6 +207,6 @@ if __name__ == "__main__":
             smart,
             cpy,
         )
-
+    )
     print()
     print("URL:", url)
