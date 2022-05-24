@@ -24,9 +24,7 @@ def parse_args():
         "-c", "--copy", default=False, action="store_true", help="Copy to clipboard"
     )
     parser.add_argument("-e", "--env_file", default=None, help="Path to .env file")
-    parser.add_argument(
-        "-H", "--height", type=int, default=0, help="Height of the image"
-    )
+    parser.add_argument("-H", "--height", type=int, help="Height of the image")
     parser.add_argument(
         "-S", "--smart", default=True, action="store_true", help="Use smart cropping"
     )
@@ -40,9 +38,7 @@ def parse_args():
         default=0,
         help="Verbosity, can be used multiple times, default is disabled, -v for info, -vv for debug",
     )
-    parser.add_argument(
-        "-W", "--width", type=int, default=800, help="Width of the image"
-    )
+    parser.add_argument("-W", "--width", type=int, help="Width of the image")
     parser.add_argument("image_url", help="Image URL")
     return parser.parse_args()
 
@@ -158,34 +154,43 @@ if __name__ == "__main__":
     assert THUMBOR_BASE_URL is not None, "THUMBOR_BASE_URL is not set"
     THUMBOR_KEY = getenv("THUMBOR_KEY")
     assert THUMBOR_KEY is not None, "THUMBOR_KEY is not set"
-    logger.debug("THUMBOR_BASE_URL: %s", THUMBOR_BASE_URL)
-    logger.debug("THUMBOR_KEY: %s", THUMBOR_KEY)
 
-    t_width = getenv("WIDTH")
-    t_height = getenv("HEIGHT")
-    t_smart = getenv("SMART")
-    t_unsafe = getenv("UNSAFE")
-    t_copy = getenv("COPY")
+    e_width = getenv("WIDTH")
+    e_height = getenv("HEIGHT")
+    e_smart = getenv("SMART")
+    e_unsafe = getenv("UNSAFE")
+    e_copy = getenv("COPY")
 
     logger.debug("Environment variables:")
-    logger.debug("WIDTH: %s", t_width)
-    logger.debug("HEIGHT: %s", t_height)
-    logger.debug("SMART: %s", t_smart)
-    logger.debug("COPY: %s", t_copy)
-    logger.debug("UNSAFE: %s", t_unsafe)
+    logger.debug("THUMBOR_BASE_URL: %s", THUMBOR_BASE_URL)
+    logger.debug("THUMBOR_KEY: %s", THUMBOR_KEY)
+    logger.debug("WIDTH: %s", e_width)
+    logger.debug("HEIGHT: %s", e_height)
+    logger.debug("SMART: %s", e_smart)
+    logger.debug("COPY: %s", e_copy)
+    logger.debug("UNSAFE: %s", e_unsafe)
 
-    width = int(t_width) if t_width is not None else args.width
-    height = int(t_height) if t_height is not None else args.height
-    smart = t_smart == "True" if t_smart is not None else args.smart
-    cpy = t_copy == "True" if t_copy is not None else args.copy
-    unsafe = t_unsafe == "True" if t_unsafe is not None else args.unsafe
+    width = args.width if args.width is not None else e_width
+    height = args.height if args.height is not None else e_height
+    smart = args.smart if args.smart is not None else e_smart
+    unsafe = args.unsafe if args.unsafe is not None else e_unsafe
+    cpy = args.copy if args.copy is not None else e_copy
 
-    logger.debug("Args:")
-    logger.debug("Width: %s", width)
-    logger.debug("Height: %s", height)
-    logger.debug("Smart: %s", smart)
-    logger.debug("Copy: %s", copy)
-    logger.debug("Unsafe: %s", unsafe)
+    if width is None and height is None:
+        logger.error("Width or height is required")
+        raise Exception("Width or height is required")
+
+    if width is None:
+        width = 0
+    if height is None:
+        height = 0
+
+    logger.debug("\nFunction arguments:")
+    logger.debug("WIDTH: %s", width)
+    logger.debug("HEIGHT: %s", height)
+    logger.debug("SMART: %s", smart)
+    logger.debug("COPY: %s", cpy)
+    logger.debug("UNSAFE: %s", unsafe)
 
     url = ""
     if unsafe:
