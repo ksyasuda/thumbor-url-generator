@@ -1,1 +1,3 @@
 libthumbor
+python-dotenv
+pyperclip
